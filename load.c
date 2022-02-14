@@ -4,6 +4,7 @@
 #include <windows.h>
 static HMODULE libraryHandle = NULL;
 #else
+#include <dlfcn.h>
 static void* libraryHandle = NULL;
 #endif
 
