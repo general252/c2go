@@ -1,0 +1,7 @@
+/.idea
+/example/libcbd.dll
+/example/libcbd.exp
+/example/libcbd.lib
+/example/libcbd.pdb
+/example/c2go.exe
+/example/go_build_main_go.exe
