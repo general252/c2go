@@ -5,7 +5,7 @@ import (
 	"runtime/cgo"
 	"time"
 
-	"general252/c2go"
+	"github.com/general252/c2go"
 )
 
 func init() {
