@@ -7,28 +7,16 @@
 #include <stdlib.h>
 #include "c2go.h"
 
-// golang export function
-void GoFnCallback(char* method, uintptr_t funcPtr, char* data, int32_t length);
-
 int mLoadLibrary(char* libraryName) ;
 int mUnLoadLibrary() ;
 
+// golang export function
+void FnCallBackLibGO(char* data, int32_t len);
+void FnCallBackCmdGO(int32_t cmdId, char* data, int32_t len);
 
-int32_t call_C2Go_Init();
-int32_t call_C2Go_Finish();
-int32_t call_C2Go_Method(struct MethodParam* param);
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct MethodParam* MethodParamNew(char* method, int32_t len);
-void MethodParamSetData(struct MethodParam* param, int32_t index, char* data, int32_t len);
-void MethodParamSetHandle(struct MethodParam* param, int32_t index, int64_t handle);
-void MethodParamSetInstance(struct MethodParam* param, int32_t index, int64_t instance);
-int64_t MethodParamGetInstance(struct MethodParam* param, int32_t index);
-void MethodParamDelete(struct MethodParam* param) ;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int32_t call_Go4CInit_C(char* data, int32_t len, FnCallBackLib_C callback);
+int32_t call_Go4CRelease_C();
+int32_t call_Go4CInitCommand_C(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t handle);
 
 
 #if defined(CGO_OS_WINDOWS)

@@ -17,29 +17,34 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"runtime/cgo"
 	"unsafe"
 )
 
-//export GoFnCallback
-func GoFnCallback(method *C.char, handle C.uintptr_t, data *C.char, length C.int32_t) {
-	var methodName = C.GoString(method)
-	_ = methodName
+//export FnCallBackLibGO
+func FnCallBackLibGO(data *C.char, len C.int32_t) {
+	//var s = C.GoStringN(data, len)
+	var s []byte = C.GoBytes(unsafe.Pointer(data), len)
 
-	var s []byte = C.GoBytes(unsafe.Pointer(data), length)
-
-	defer func() {
-		if err := recover(); err != nil {
-		}
-	}()
-
-	h := cgo.Handle(handle)
-	val := h.Value()
-
-	if dataCallback, ok := val.(func([]byte)); ok {
-		dataCallback(s)
+	if defaultLibraryCallback != nil {
+		defaultLibraryCallback(s)
 	}
 }
+
+//export FnCallBackCmdGO
+func FnCallBackCmdGO(handle C.int32_t, data *C.char, len C.int32_t) {
+	var s []byte = C.GoBytes(unsafe.Pointer(data), len)
+
+	//log.Println(string(s))
+
+	v, ok := Handle(handle).Value()
+	if ok {
+		v(s)
+	}
+}
+
+var (
+	defaultLibraryCallback = func(data []byte) {}
+)
 
 // LoadLibrary 加载动态库
 func LoadLibrary(libraryName string) error {
@@ -61,54 +66,25 @@ func UnLoadLibrary() {
 	C.mUnLoadLibrary()
 }
 
-func Init() {
-	var r = C.call_C2Go_Init()
+func Init(data []byte, fn HandleFunc) {
+	in := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
+	inLen := C.int32_t(len(data))
+
+	defaultLibraryCallback = fn
+
+	var r = C.call_Go4CInit_C(in, inLen, C.FnCallBackLib_C(C.FnCallBackLibGO))
 	log.Println(r)
 }
 
 func Finish() {
-	C.call_C2Go_Finish()
+	C.call_Go4CRelease_C()
 }
 
-func Method(method string, handles []cgo.Handle, dataList [][]byte, instances []int64) int {
-	dataMethod := []byte(method)
-	inDataMethod := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&dataMethod)).Data))
-	inDataMethodLen := C.int32_t(len(dataMethod))
+func Command(data []byte, h Handle) int {
+	inData := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
+	inDataLen := C.int32_t(len(data))
 
-	// malloc
-	var param = C.MethodParamNew(inDataMethod, inDataMethodLen)
-
-	// instance
-	for i := 0; i < len(instances) && i < 4; i++ {
-		h := C.int64_t(instances[i])
-		C.MethodParamSetInstance(param, C.int32_t(i), h)
-	}
-
-	// handle
-	for i := 0; i < len(handles) && i < 16; i++ {
-		h := C.int64_t(handles[i])
-		C.MethodParamSetHandle(param, C.int32_t(i), h)
-	}
-
-	// data && dataSize
-	for i := 0; i < len(dataList) && i < 16; i++ {
-		data := dataList[i]
-		inData := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
-		inDataLen := C.int32_t(len(data))
-
-		C.MethodParamSetData(param, C.int32_t(i), inData, inDataLen)
-	}
-
-	// call
-	var rc = C.call_C2Go_Method(param)
-
-	for i := 0; i < len(instances); i++ {
-		v := C.MethodParamGetInstance(param, C.int32_t(i))
-		instances[i] = int64(v)
-	}
-
-	// free
-	C.MethodParamDelete(param)
+	var rc = C.call_Go4CInitCommand_C(inData, inDataLen, C.FnCallBackCmd_C(C.FnCallBackCmdGO), C.int32_t(h))
 
 	return int(rc)
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"runtime/cgo"
 	"time"
 
 	"github.com/general252/c2go"
@@ -13,27 +12,20 @@ func init() {
 }
 
 func main() {
-	if err := c2go.LoadLibrary("libcbd.dll"); err != nil {
+	if err := c2go.LoadLibrary("c2go.so"); err != nil {
 		log.Println(err)
 		return
 	}
+	defer c2go.UnLoadLibrary()
 
-	c2go.Init()
-
-	h := cgo.NewHandle(func(data []byte) {
+	c2go.Init([]byte("init data"), func(data []byte) {
 		log.Println(string(data))
 	})
-	defer h.Delete()
+	defer c2go.Finish()
 
-	var instances = []int64{1, 2, 3}
-	c2go.Method("my method hello", []cgo.Handle{h}, [][]byte{
-		[]byte("aaa"),
-		[]byte("bbb"),
-		[]byte("ccc"),
-		[]byte("ddd"),
-	}, instances)
-
-	log.Println(instances)
+	c2go.Command([]byte("this is command data"), c2go.NewHandle(func(data []byte) {
+		log.Println(string(data))
+	}))
 
 	time.Sleep(time.Second)
 }
