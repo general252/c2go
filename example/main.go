@@ -23,9 +23,12 @@ func main() {
 	})
 	defer c2go.Finish()
 
-	c2go.Command([]byte("this is command data"), c2go.NewHandle(func(data []byte) {
+	h := c2go.NewHandle(func(data []byte) {
 		log.Println(string(data))
-	}))
+	})
+	defer h.Delete()
+
+	c2go.Command([]byte("this is command data"), h)
 
 	time.Sleep(time.Second)
 }
