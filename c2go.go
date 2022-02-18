@@ -62,18 +62,21 @@ func UnLoadLibrary() {
 	C.mUnLoadLibrary()
 }
 
-func Init(data []byte, fn func(method []byte, data []byte)) {
+func Init(data []byte, fn func(method []byte, data []byte)) int {
 	in := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
 	inLen := C.int32_t(len(data))
 
 	defaultLibraryCallback = fn
 
 	var r = C.call_Go4CInit_C(in, inLen, C.FnCallBackLib_C(C.FnCallBackLibGO))
-	log.Println(r)
+
+	return int(r)
 }
 
-func Finish() {
-	C.call_Go4CRelease_C()
+func Finish() int {
+	var r = C.call_Go4CRelease_C()
+
+	return int(r)
 }
 
 func Command(data []byte, h Handle) int {
