@@ -7,28 +7,28 @@ import (
 )
 
 type (
-	Handle     int32
+	Handle     uintptr
 	HandleFunc func(data []byte)
 )
 
 var (
-	handles   = sync.Map{} // map[Handle]interface{}
-	handleIdx int32        // atomic
+	handles           = sync.Map{} // map[Handle]interface{}
+	handleIdx uintptr = 0
 )
 
 func NewHandle(v HandleFunc) Handle {
-	if handleIdx > math.MaxInt16 {
+	if uint64(handleIdx) >= uint64(math.MaxUint32) {
 		handleIdx = 0
 	}
 
-	var h int32
+	var h uintptr
 	for {
-		_, ok := handles.Load(handleIdx)
+		h = atomic.AddUintptr(&handleIdx, 1)
+
+		_, ok := handles.Load(h)
 		if !ok {
 			break
 		}
-
-		h = atomic.AddInt32(&handleIdx, 1)
 	}
 
 	handles.Store(h, v)
@@ -39,7 +39,7 @@ func NewHandle(v HandleFunc) Handle {
 //
 // The method panics if the handle is invalid.
 func (h Handle) Value() (HandleFunc, bool) {
-	v, ok := handles.Load(int32(h))
+	v, ok := handles.Load(uintptr(h))
 	if !ok || nil == v {
 		return nil, false
 	}
@@ -58,7 +58,7 @@ func (h Handle) Value() (HandleFunc, bool) {
 //
 // The method panics if the handle is invalid.
 func (h Handle) Delete() {
-	_, ok := handles.LoadAndDelete(int32(h))
+	_, ok := handles.LoadAndDelete(uintptr(h))
 	if !ok {
 	}
 }

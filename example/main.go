@@ -18,8 +18,8 @@ func main() {
 	}
 	defer c2go.UnLoadLibrary()
 
-	c2go.Init([]byte("init data"), func(data []byte) {
-		log.Println(string(data))
+	c2go.Init([]byte("init data"), func(method []byte, data []byte) {
+		log.Println(string(method), string(data))
 	})
 	defer c2go.Finish()
 

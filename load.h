@@ -11,12 +11,11 @@ int mLoadLibrary(char* libraryName) ;
 int mUnLoadLibrary() ;
 
 // golang export function
-void FnCallBackLibGO(char* data, int32_t len);
-void FnCallBackCmdGO(int32_t cmdId, char* data, int32_t len);
+void FnCallBackLibGO(char* method, int32_t methodLen, uintptr_t handle, char* data, int32_t len);
 
 int32_t call_Go4CInit_C(char* data, int32_t len, FnCallBackLib_C callback);
 int32_t call_Go4CRelease_C();
-int32_t call_Go4CInitCommand_C(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t handle);
+int32_t call_Go4CInitCommand_C(char* data, int32_t len, uintptr_t handle);
 
 
 #if defined(CGO_OS_WINDOWS)

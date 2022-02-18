@@ -10,7 +10,7 @@ static void* libraryHandle = NULL;
 
 typedef int32_t (*Fn_Go4CInit_C)(char* data, int32_t len, FnCallBackLib_C callback);
 typedef int32_t (*Fn_Go4CRelease_C)();
-typedef int32_t (*Fn_Go4CInitCommand_C)(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t cmdId);
+typedef int32_t (*Fn_Go4CInitCommand_C)(char* data, int32_t len, uintptr_t handle);
 
 static Fn_Go4CInit_C        fn_Go4CInit_C = 0;
 static Fn_Go4CRelease_C     fn_Go4CRelease_C = 0;
@@ -72,11 +72,11 @@ int32_t call_Go4CRelease_C() {
 	return fn_Go4CRelease_C();
 }
 
-int32_t call_Go4CInitCommand_C(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t handle) {
+int32_t call_Go4CInitCommand_C(char* data, int32_t len, uintptr_t handle) {
 	if (!fn_Go4CInitCommand_C) {
 		return -1;
 	}
 
-	return fn_Go4CInitCommand_C(data, len, cmd_callback, handle);
+	return fn_Go4CInitCommand_C(data, len, handle);
 }
 

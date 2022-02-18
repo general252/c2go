@@ -7,9 +7,10 @@ FnCallBackLib_C g_callback = 0;
 
 GO_C_LIB_API int32_t Go4CInit_C(char* data, int32_t len, FnCallBackLib_C callback)
 {
-    printf("hello world [%s][%d]\n", data, len);
-    callback((char*)"hello", 4);
+    printf("Go4CInit_C [%s][%d]\n", data, len);
     g_callback = callback;
+
+    g_callback((char*)"method name", 11, 0, data, len);
 
     return 0;
 }
@@ -20,14 +21,11 @@ GO_C_LIB_API int32_t Go4CRelease_C()
     return 0;
 }
 
-GO_C_LIB_API int32_t Go4CInitCommand_C(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t cmdId)
+GO_C_LIB_API int32_t Go4CInitCommand_C(char* data, int32_t len, uintptr_t handle)
 {
     printf("hello cmd: %s\n", data);
-    if (cmd_callback) {
-        cmd_callback(cmdId, data, len);
-    }
     if (g_callback) {
-        g_callback(data, len);
+        g_callback((char*)"method name", 11, handle, data, len);
     }
     return 0;
 }

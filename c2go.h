@@ -21,14 +21,13 @@
 extern "C" {
 #endif // __cplusplus
 
-    typedef void (*FnCallBackLib_C)(char* data, int32_t len);
-    typedef void (*FnCallBackCmd_C)(int32_t handle, char* data, int32_t len);
+    typedef void (*FnCallBackLib_C)(char* method, int32_t methodLen, uintptr_t handle, char* data, int32_t len);
 
     GO_C_LIB_API int32_t Go4CInit_C(char* data, int32_t len, FnCallBackLib_C callback);
 
     GO_C_LIB_API int32_t Go4CRelease_C();
 
-    GO_C_LIB_API int32_t Go4CInitCommand_C(char* data, int32_t len, FnCallBackCmd_C cmd_callback, int32_t handle);
+    GO_C_LIB_API int32_t Go4CInitCommand_C(char* data, int32_t len, uintptr_t handle);
 
 #ifdef __cplusplus
 };

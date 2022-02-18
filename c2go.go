@@ -21,29 +21,25 @@ import (
 )
 
 //export FnCallBackLibGO
-func FnCallBackLibGO(data *C.char, len C.int32_t) {
-	//var s = C.GoStringN(data, len)
+func FnCallBackLibGO(method *C.char, methodLen C.int32_t, handle C.uintptr_t, data *C.char, len C.int32_t) {
+	//var s = C.GoStringN(method, methodLen)
 	var s []byte = C.GoBytes(unsafe.Pointer(data), len)
 
-	if defaultLibraryCallback != nil {
-		defaultLibraryCallback(s)
-	}
-}
-
-//export FnCallBackCmdGO
-func FnCallBackCmdGO(handle C.int32_t, data *C.char, len C.int32_t) {
-	var s []byte = C.GoBytes(unsafe.Pointer(data), len)
-
-	//log.Println(string(s))
-
-	v, ok := Handle(handle).Value()
-	if ok {
-		v(s)
+	if uint64(handle) > 0 {
+		v, ok := Handle(handle).Value()
+		if ok {
+			v(s)
+		}
+	} else {
+		if defaultLibraryCallback != nil {
+			methodName := C.GoBytes(unsafe.Pointer(method), methodLen)
+			defaultLibraryCallback(methodName, s)
+		}
 	}
 }
 
 var (
-	defaultLibraryCallback = func(data []byte) {}
+	defaultLibraryCallback = func(method []byte, data []byte) {}
 )
 
 // LoadLibrary 加载动态库
@@ -66,7 +62,7 @@ func UnLoadLibrary() {
 	C.mUnLoadLibrary()
 }
 
-func Init(data []byte, fn HandleFunc) {
+func Init(data []byte, fn func(method []byte, data []byte)) {
 	in := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
 	inLen := C.int32_t(len(data))
 
@@ -84,7 +80,7 @@ func Command(data []byte, h Handle) int {
 	inData := (*C.char)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&data)).Data))
 	inDataLen := C.int32_t(len(data))
 
-	var rc = C.call_Go4CInitCommand_C(inData, inDataLen, C.FnCallBackCmd_C(C.FnCallBackCmdGO), C.int32_t(h))
+	var rc = C.call_Go4CInitCommand_C(inData, inDataLen, C.uintptr_t(h))
 
 	return int(rc)
 }
